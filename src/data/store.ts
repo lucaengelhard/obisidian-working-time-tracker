@@ -33,6 +33,10 @@ export function writeStore(input: Store) {
   return JSON.stringify(input);
 }
 
+export function updateStore(input: Store) {
+  console.log(writeStore(input));
+}
+
 export function reverseProjects(projects: Projects) {
   return Object.fromEntries(
     Object.entries(projects).map(([key, value]) => [value, key])

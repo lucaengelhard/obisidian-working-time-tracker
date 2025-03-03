@@ -8,15 +8,13 @@ import {
   TableHeader,
   TableRow,
 } from "./components/ui/table";
-import { reversedProjects, reverseProjects, store } from "./data/store";
-import { primHoursToStrhours } from "./lib/datetime";
+import { Chunk, reversedProjects, store, updateStore } from "./data/store";
+import { ObjTimeToPrimHours, primHoursToStrhours } from "./lib/datetime";
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import { useEffect, useRef, useState } from "react";
 
 import { DateTimePicker, TimePicker } from "./components/datetime";
-import { Popover, PopoverContent } from "./components/ui/popover";
-import { PopoverTrigger } from "@radix-ui/react-popover";
 
 function App() {
   return (
@@ -71,6 +69,7 @@ function NewItem() {
   const [task, setTask] = useState<string>();
   const [projectOps, setProjectOps] = useState<Array<number>>();
   const [project, setProject] = useState<number>();
+  const [bank, setBank] = useState(false);
 
   const projRef = useRef<HTMLInputElement>(null);
 
@@ -83,12 +82,16 @@ function NewItem() {
     )
       return;
 
-    console.log(task);
-    console.log(store.projects[project]);
+    const newChunk: Chunk = {
+      title: task,
+      date,
+      startTime: ObjTimeToPrimHours(startTime),
+      endTime: endTime && ObjTimeToPrimHours(endTime),
+      project,
+      bank,
+    };
 
-    console.log(date);
-    console.log(startTime);
-    console.log(endTime);
+    updateStore({ ...store, chunks: [...store.chunks, newChunk] });
   }
 
   function onProjectInput(e: React.ChangeEvent<HTMLInputElement>) {
@@ -146,7 +149,7 @@ function NewItem() {
         <TimePicker onTimeChange={setEndTime} />
       </TableCell>
       <TableCell>
-        <input type="checkbox" />
+        <input onChange={(e) => setBank(e.target.checked)} type="checkbox" />
       </TableCell>
       <TableCell>
         <Button

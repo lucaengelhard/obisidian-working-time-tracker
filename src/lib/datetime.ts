@@ -13,3 +13,7 @@ export function primHoursToStrhours(input: number) {
     "0"
   )}`;
 }
+
+export function ObjTimeToPrimHours(input: { h: number; m: number }) {
+  return input.h + input.m / 60;
+}
