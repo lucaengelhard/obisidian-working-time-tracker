@@ -1,0 +1,10 @@
+{
+  "id": "working-time-tracker",
+  "name": "Working time tracker",
+  "version": "0.0.1",
+  "minAppVersion": "0.15.0",
+  "description": "Track yor working time in Obsidian",
+  "author": "Luca Engelhard",
+  "authorUrl": "https://lucaengelhard.com",
+  "isDesktopOnly": false
+}

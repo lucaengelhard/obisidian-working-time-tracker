@@ -2,13 +2,32 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import tailwindcss from "@tailwindcss/vite";
+import pluginExternal from "vite-plugin-external";
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    pluginExternal({
+      externals: {
+        obsidian: "obsidian",
+      },
+    }),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  build: {
+    target: "es2018",
+    lib: {
+      entry: path.resolve(__dirname, "./src/main.tsx"),
+      name: "Obsidian Working Time Tracker",
+      fileName: () => "main.js",
+      formats: ["cjs"],
+      cssFileName: "style",
     },
   },
 });
