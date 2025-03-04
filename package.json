@@ -8,7 +8,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:obsidian": "pnpm run build && pnpm run copy:dist && pnpm run copy:manifest",
+    "copy:dist": "xcopy \"dist\\*\" \"..\\..\\..\\0_Luca\\obsidian\\Luca - Notes\\.obsidian\\plugins\\working-time-tracker\" /E /I /Y",
+    "copy:manifest": "COPY \"manifest.json\" \"..\\..\\..\\0_Luca\\obsidian\\Luca - Notes\\.obsidian\\plugins\\working-time-tracker\\manifest.json\""
   },
   "dependencies": {
     "@radix-ui/react-popover": "^1.1.6",
@@ -42,5 +45,5 @@
     "vite": "^6.2.0",
     "vite-plugin-external": "^6.0.1"
   },
-  "packageManager": "pnpm@9.12.2+sha512.22721b3a11f81661ae1ec68ce1a7b879425a1ca5b991c975b074ac220b187ce56c708fe5db69f4c962c989452eee76c82877f4ee80f474cebd61ee13461b6228"
+  "packageManager": "pnpm@9.12.2+"
 }

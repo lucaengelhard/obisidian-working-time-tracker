@@ -27,7 +27,7 @@ export default defineConfig({
       name: "Obsidian Working Time Tracker",
       fileName: () => "main.js",
       formats: ["cjs"],
-      cssFileName: "style",
+      cssFileName: "styles",
     },
   },
 });
