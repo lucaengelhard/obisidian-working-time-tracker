@@ -33,11 +33,7 @@ export function DatePicker({
             !date && "text-muted-foreground"
           )}
         >
-          {date ? (
-            format(date, "PPP")
-          ) : (
-            <CalendarIcon className="mr-2 h-4 w-4" />
-          )}
+          {date ? format(date, "PPP") : <CalendarIcon className="h-4 w-4" />}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0">

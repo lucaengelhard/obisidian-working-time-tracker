@@ -15,6 +15,8 @@ import { Input } from "./components/ui/input";
 import { DatePicker, TimePicker } from "./components/Datepicker";
 import { useContext, useMemo, useRef, useState } from "react";
 import { ObsStoreContext } from "./App";
+import { Popover } from "./components/ui/popover";
+import { PopoverContent, PopoverTrigger } from "@radix-ui/react-popover";
 
 export default function TaskTable() {
   const ObsStore = useContext(ObsStoreContext);
@@ -149,33 +151,48 @@ export default function TaskTable() {
           <TableCell>
             <Input onChange={(e) => setNewTitle(e.target.value)} />
           </TableCell>
-          <TableCell className="relative p-2">
-            <Input ref={projRef} onChange={onProjUpdate} />
-            {possibleProjs && (
-              <div className="absolute top-full left-0 bg-white border max-w-full shadow rounded-md  flex flex-wrap gap-4 ">
-                {possibleProjs.map((p) => (
-                  <div className="hover:bg-gray-100  p-2 select-none cursor-pointer flex gap-2 items-center">
-                    <span
-                      onClick={() => {
-                        setNewProject(p);
-                        setPossibleProjs(undefined);
+          <TableCell className="p-2 relative">
+            <Popover
+              open={possibleProjs && possibleProjs.length !== 0}
+              modal={false}
+            >
+              <PopoverTrigger asChild>
+                <div>
+                  <Input ref={projRef} onChange={onProjUpdate} />
+                </div>
+              </PopoverTrigger>
+              {possibleProjs && (
+                <PopoverContent onOpenAutoFocus={(e) => e.preventDefault()}>
+                  <div className="bg-white border max-w-full shadow rounded-md  flex gap-4 mt-2">
+                    {possibleProjs.map((p, i) => {
+                      return (
+                        i <= 2 && (
+                          <div className="hover:bg-gray-100  p-2 select-none cursor-pointer flex gap-2 items-center">
+                            <span
+                              onClick={() => {
+                                setNewProject(p);
+                                setPossibleProjs(undefined);
 
-                        if (projRef.current) {
-                          projRef.current.value = store.projects[p];
-                        }
-                      }}
-                    >
-                      {store.projects[p]}
-                    </span>
-                    <X
-                      className="hover:bg-red-400"
-                      onClick={() => deleteProject(p)}
-                      size={15}
-                    />
+                                if (projRef.current) {
+                                  projRef.current.value = store.projects[p];
+                                }
+                              }}
+                            >
+                              {store.projects[p]}
+                            </span>
+                            <X
+                              className="hover:bg-red-400"
+                              onClick={() => deleteProject(p)}
+                              size={15}
+                            />
+                          </div>
+                        )
+                      );
+                    })}
                   </div>
-                ))}
-              </div>
-            )}
+                </PopoverContent>
+              )}
+            </Popover>
           </TableCell>
           <TableCell>
             <DatePicker onDateChange={setNewDate} />
@@ -191,7 +208,7 @@ export default function TaskTable() {
               newEndTime !== undefined &&
               calcDuration(newStartTime, newEndTime)}
           </TableCell>
-          <TableCell>
+          <TableCell className="!text-center !align-middle">
             <input
               type="checkbox"
               defaultChecked={newBanked}
@@ -220,7 +237,7 @@ export default function TaskTable() {
               <TableCell>
                 {task.endTime && calcDuration(task.startTime, task.endTime)}
               </TableCell>
-              <TableCell>
+              <TableCell className="!text-center !align-middle">
                 <input type="checkbox" defaultChecked={task.banked} />
               </TableCell>
               <TableCell className="flex gap-4">
@@ -238,3 +255,40 @@ export default function TaskTable() {
     </Table>
   );
 }
+
+// function PossibleProjsPopout({
+//   possibleProjs,
+//   deleteProject,
+//   projRef,
+//   setNewProject,
+//   setPossibleProjs,
+// }: {
+//   possibleProjs: number[];
+//   setNewProject: (value: React.SetStateAction<number | undefined>) => void;
+//   setPossibleProjs: (value: React.SetStateAction<number[] | undefined>) => void;
+//   deleteProject: (id: number) => void;
+//   projRef: React.RefObject<HTMLInputElement | null>;
+// }) {
+//   const ObsStore = useContext(ObsStoreContext);
+//   const store = useMemo(() => ObsStore?.store, [ObsStore?.store]);
+
+//   useEffect(() => {
+//     const handlescroll = (event: Event) => {
+//       console.log(event);
+//     };
+
+//     window.addEventListener("scroll", handlescroll);
+//   }, []);
+
+//   if (!ObsStore) return <div>Problem with internals: ObsStore missing</div>;
+//   if (!store) return <div>Problem with internals: store missing</div>;
+//   if (!projRef.current)
+//     return <div>Problem with internals: projRef missing</div>;
+
+//   console.log(possibleProjs, deleteProject, setNewProject, setPossibleProjs);
+
+//   return (
+//     <div className="bg-red-500 fixed" style={{}}></div>
+
+//   );
+// }
