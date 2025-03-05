@@ -1,3 +1,3 @@
-export let tempStoreString = {
+export const tempStoreString = {
   string: `{"projects":{"1":"eea","2":"other","3":"ot"},"tasks":{"1":{"id":1,"title":"test","date":"2025-03-03T19:21:17.773Z","project":1,"startTime":{"hours":10,"minutes":0},"endTime":{"hours":15,"minutes":15}},"2":{"id":2,"title":"test2","date":"2025-03-03T19:21:17.773Z","project":1,"startTime":{"hours":10,"minutes":0},"banked":true},"3":{"id":3,"title":"test3","date":"2025-03-03T19:21:17.773Z","project":1,"startTime":{"hours":10,"minutes":0},"banked":true},"4":{"id":4,"title":"test4","date":"2025-03-02T23:00:00.000Z","project":3,"startTime":{"hours":3,"minutes":0},"endTime":{"hours":0,"minutes":15},"banked":true}}}`,
 };

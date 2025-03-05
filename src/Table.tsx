@@ -9,19 +9,16 @@ import {
   TableHeader,
   TableRow,
 } from "./components/ui/table";
-import { getNewId, SimpleTime, Store, Task, writeStore } from "./data/store";
+import { getNewId, SimpleTime, Task } from "./data/store";
 import { calcDuration, ObjTimeToStr } from "./lib/datetime";
 import { Input } from "./components/ui/input";
 import { DatePicker, TimePicker } from "./components/Datepicker";
-import { useRef, useState } from "react";
+import { useContext, useMemo, useRef, useState } from "react";
+import { ObsStoreContext } from "./App";
 
-export default function TaskTable({
-  store,
-  onStoreUpdate,
-}: {
-  store: Store;
-  onStoreUpdate: () => void;
-}) {
+export default function TaskTable() {
+  const ObsStore = useContext(ObsStoreContext);
+
   const [newDate, setNewDate] = useState<Date>();
   const [newStartTime, setNewStartTime] = useState<SimpleTime>();
   const [newEndTime, setNewEndTime] = useState<SimpleTime>();
@@ -32,7 +29,13 @@ export default function TaskTable({
 
   const projRef = useRef<HTMLInputElement>(null);
 
+  const store = useMemo(() => ObsStore?.store, [ObsStore?.store]);
+
+  if (!ObsStore) return <div>Problem with internals: ObsStore missing</div>;
+  if (!store) return <div>Problem with internals: store missing</div>;
+
   function onProjUpdate(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!store) return;
     const query = e.target.value;
 
     if (query === "") {
@@ -52,7 +55,9 @@ export default function TaskTable({
     );
   }
 
-  function onAdd() {
+  async function onAdd() {
+    if (!store || !ObsStore) return;
+
     if (
       newTitle === undefined ||
       newDate === undefined ||
@@ -63,6 +68,7 @@ export default function TaskTable({
     let projName = "";
     let newProjFlag = false;
 
+    // TODO: BUGGY
     if (proj === undefined && projRef.current) {
       newProjFlag = true;
       projName = projRef.current.value;
@@ -91,29 +97,28 @@ export default function TaskTable({
       banked: newBanked,
     };
 
-    writeStore({
+    await ObsStore.save({
       ...store,
       tasks: { ...store.tasks, [newTask.id]: newTask },
       projects: !newProjFlag
         ? { ...store.projects }
         : { ...store.projects, [proj]: projName },
     });
-
-    onStoreUpdate();
   }
 
-  function deleteTask(id: number) {
+  async function deleteTask(id: number) {
+    if (!store || !ObsStore) return;
     if (store.tasks[id] === undefined) return;
 
     delete store.tasks[id];
 
-    writeStore({ ...store, tasks: { ...store.tasks } });
-    onStoreUpdate();
+    ObsStore.save({ ...store, tasks: { ...store.tasks } });
 
     //TODO Clean Delete
   }
 
   function deleteProject(id: number) {
+    if (!store || !ObsStore) return;
     if (store.projects[id] === undefined) return;
     if (
       Object.values(store.tasks).find((el) => el.project === id) !== undefined
@@ -121,8 +126,7 @@ export default function TaskTable({
       return;
 
     delete store.projects[id];
-    writeStore({ ...store, projects: { ...store.projects } });
-    onStoreUpdate();
+    ObsStore.save({ ...store, projects: { ...store.projects } });
   }
 
   return (
