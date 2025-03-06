@@ -35,5 +35,9 @@ export default class WorkingHoursPlugin extends Plugin {
     });
   }
 
+  //TODO: Export PDF (Command / Button?)
+  //TODO: EDIT functions
+  //TODO: Table sizing fixes
+
   async onunload() {}
 }

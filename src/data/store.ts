@@ -1,5 +1,4 @@
 import { MarkdownPostProcessorContext, App as obisidianApp } from "obsidian";
-import { tempStoreString } from "./storestring";
 
 export type Projects = { [index: number]: string };
 
@@ -22,9 +21,7 @@ export type Store = {
   tasks: Tasks;
 };
 
-export function readStore(input?: string) {
-  if (input === undefined) input = tempStoreString.string;
-
+export function readStore(input: string) {
   return JSON.parse(input, (key, value) => {
     if (key === "date") {
       return new Date(value);
