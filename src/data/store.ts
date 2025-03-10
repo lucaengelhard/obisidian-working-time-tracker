@@ -176,7 +176,7 @@ export class ObsidianStore {
       })
     );
 
-    new Notice("Timesheets successfully overwritten!");
+    new Notice("Timesheets successfully created!");
   }
 }
 
