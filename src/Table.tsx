@@ -240,13 +240,15 @@ export default function TaskTable() {
               <TableCell className="!text-center !align-middle">
                 <input type="checkbox" defaultChecked={task.banked} />
               </TableCell>
-              <TableCell className="flex gap-4">
-                <Button variant="outline">
-                  <Edit />
-                </Button>
-                <Button variant="outline" onClick={() => deleteTask(id)}>
-                  <Trash2 />
-                </Button>
+              <TableCell>
+                <div className="flex gap-4">
+                  <Button variant="outline">
+                    <Edit />
+                  </Button>
+                  <Button variant="outline" onClick={() => deleteTask(id)}>
+                    <Trash2 />
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           );
@@ -255,40 +257,3 @@ export default function TaskTable() {
     </Table>
   );
 }
-
-// function PossibleProjsPopout({
-//   possibleProjs,
-//   deleteProject,
-//   projRef,
-//   setNewProject,
-//   setPossibleProjs,
-// }: {
-//   possibleProjs: number[];
-//   setNewProject: (value: React.SetStateAction<number | undefined>) => void;
-//   setPossibleProjs: (value: React.SetStateAction<number[] | undefined>) => void;
-//   deleteProject: (id: number) => void;
-//   projRef: React.RefObject<HTMLInputElement | null>;
-// }) {
-//   const ObsStore = useContext(ObsStoreContext);
-//   const store = useMemo(() => ObsStore?.store, [ObsStore?.store]);
-
-//   useEffect(() => {
-//     const handlescroll = (event: Event) => {
-//       console.log(event);
-//     };
-
-//     window.addEventListener("scroll", handlescroll);
-//   }, []);
-
-//   if (!ObsStore) return <div>Problem with internals: ObsStore missing</div>;
-//   if (!store) return <div>Problem with internals: store missing</div>;
-//   if (!projRef.current)
-//     return <div>Problem with internals: projRef missing</div>;
-
-//   console.log(possibleProjs, deleteProject, setNewProject, setPossibleProjs);
-
-//   return (
-//     <div className="bg-red-500 fixed" style={{}}></div>
-
-//   );
-// }

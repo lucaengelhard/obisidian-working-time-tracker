@@ -5,6 +5,7 @@ import { ObsidianStore, Store } from "./data/store";
 
 import { createContext } from "react";
 import TaskTable from "./Table";
+import Timesheet from "./Timesheet";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const ObsStoreContext = createContext<ObsidianStore | undefined>(
@@ -27,6 +28,7 @@ function App({
   return (
     <ObsStoreContext.Provider value={ObsStore}>
       <TaskTable />
+      <Timesheet />
     </ObsStoreContext.Provider>
   );
 }
