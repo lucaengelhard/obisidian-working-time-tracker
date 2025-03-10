@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "./components/ui/table";
 import { getNewId, SimpleTime, Task } from "./data/store";
-import { calcDuration, ObjTimeToStr } from "./lib/datetime";
+import { calcDuration, ObjTimeToPrimHours, ObjTimeToStr } from "./lib/datetime";
 import { Input } from "./components/ui/input";
 import { DatePicker, TimePicker } from "./components/Datepicker";
 import { useContext, useMemo, useRef, useState } from "react";
@@ -32,6 +32,18 @@ export default function TaskTable() {
   const projRef = useRef<HTMLInputElement>(null);
 
   const store = useMemo(() => ObsStore?.store, [ObsStore?.store]);
+  const sortedTasks = useMemo(() => {
+    if (store) {
+      return Object.values(store.tasks).sort((a, b) => {
+        const datediff = a.date.getTime() - b.date.getTime();
+        if (datediff !== 0) return datediff;
+
+        return (
+          ObjTimeToPrimHours(a.startTime) - ObjTimeToPrimHours(b.startTime)
+        );
+      });
+    }
+  }, [store]);
 
   if (!ObsStore) return <div>Problem with internals: ObsStore missing</div>;
   if (!store) return <div>Problem with internals: store missing</div>;
@@ -221,38 +233,38 @@ export default function TaskTable() {
             </Button>
           </TableCell>
         </TableRow>
-        {Object.keys(store.tasks).map((taskid) => {
-          const id = parseInt(taskid);
-          const task = store.tasks[id];
+        {sortedTasks &&
+          sortedTasks.map((task) => {
+            const id = task.id;
 
-          return (
-            <TableRow key={taskid}>
-              <TableCell>{task.title}</TableCell>
-              <TableCell>{store.projects[task.project]}</TableCell>
-              <TableCell>{task.date.toLocaleDateString()}</TableCell>
-              <TableCell>{ObjTimeToStr(task.startTime)}</TableCell>
-              <TableCell>
-                {task.endTime && ObjTimeToStr(task.endTime)}
-              </TableCell>
-              <TableCell>
-                {task.endTime && calcDuration(task.startTime, task.endTime)}
-              </TableCell>
-              <TableCell className="!text-center !align-middle">
-                <input type="checkbox" defaultChecked={task.banked} />
-              </TableCell>
-              <TableCell>
-                <div className="flex gap-4">
-                  <Button variant="outline">
-                    <Edit />
-                  </Button>
-                  <Button variant="outline" onClick={() => deleteTask(id)}>
-                    <Trash2 />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          );
-        })}
+            return (
+              <TableRow key={id}>
+                <TableCell>{task.title}</TableCell>
+                <TableCell>{store.projects[task.project]}</TableCell>
+                <TableCell>{task.date.toLocaleDateString()}</TableCell>
+                <TableCell>{ObjTimeToStr(task.startTime)}</TableCell>
+                <TableCell>
+                  {task.endTime && ObjTimeToStr(task.endTime)}
+                </TableCell>
+                <TableCell>
+                  {task.endTime && calcDuration(task.startTime, task.endTime)}
+                </TableCell>
+                <TableCell className="!text-center !align-middle">
+                  <input type="checkbox" defaultChecked={task.banked} />
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-4">
+                    <Button variant="outline">
+                      <Edit />
+                    </Button>
+                    <Button variant="outline" onClick={() => deleteTask(id)}>
+                      <Trash2 />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            );
+          })}
       </TableBody>
     </Table>
   );
