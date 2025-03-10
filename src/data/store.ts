@@ -113,7 +113,10 @@ export class ObsidianStore {
     const hourFile = this.app.vault.getFileByPath(this.ctx.sourcePath);
     const hoursBasePath = hourFile?.parent?.path;
 
+    if (!hourFile) throw "File no longer exists";
     if (hoursBasePath === undefined) throw "No Path found";
+
+    // const files = [];
 
     await Promise.all(
       Object.keys(this.store.projects).map(async (key) => {
@@ -169,12 +172,18 @@ export class ObsidianStore {
 
                 if (file === null)
                   await this.app.vault.create(monthFilePath, fileContent);
+
+                // const finalfile = this.app.vault.getFileByPath(monthFilePath);
+
+                // if (finalfile) files.push([project, year, finalfile]);
               })
             );
           })
         );
       })
     );
+
+    // await this.app.vault.append(hourFile, "\ntest\n");
 
     new Notice("Timesheets successfully created!");
   }
