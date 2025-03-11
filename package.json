@@ -47,5 +47,5 @@
     "vite": "^6.2.0",
     "vite-plugin-external": "^6.0.1"
   },
-  "packageManager": "pnpm@9.12.2"
+  "packageManager": "pnpm@10.6.2"
 }
