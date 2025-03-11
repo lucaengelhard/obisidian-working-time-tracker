@@ -1,4 +1,4 @@
-import { Edit, Plus, Trash2, X } from "lucide-react";
+import { Check, Edit, Plus, Trash2, X } from "lucide-react";
 import { Button } from "./components/ui/button";
 import {
   Table,
@@ -234,38 +234,253 @@ export default function TaskTable() {
           </TableCell>
         </TableRow>
         {sortedTasks &&
-          sortedTasks.map((task) => {
-            const id = task.id;
-
-            return (
-              <TableRow key={id}>
-                <TableCell>{task.title}</TableCell>
-                <TableCell>{store.projects[task.project]}</TableCell>
-                <TableCell>{task.date.toLocaleDateString()}</TableCell>
-                <TableCell>{ObjTimeToStr(task.startTime)}</TableCell>
-                <TableCell>
-                  {task.endTime && ObjTimeToStr(task.endTime)}
-                </TableCell>
-                <TableCell>
-                  {task.endTime && calcDuration(task.startTime, task.endTime)}
-                </TableCell>
-                <TableCell className="!text-center !align-middle">
-                  <input type="checkbox" defaultChecked={task.banked} />
-                </TableCell>
-                <TableCell>
-                  <div className="flex gap-4">
-                    <Button variant="outline">
-                      <Edit />
-                    </Button>
-                    <Button variant="outline" onClick={() => deleteTask(id)}>
-                      <Trash2 />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            );
-          })}
+          sortedTasks.map((task) => (
+            <TaskRow task={task} key={task.id} deleteTask={deleteTask} />
+          ))}
       </TableBody>
     </Table>
+  );
+}
+
+function TaskRow({
+  task,
+  deleteTask,
+}: {
+  task: Task;
+  deleteTask: (id: number) => void;
+}) {
+  const ObsStore = useContext(ObsStoreContext);
+  const store = useMemo(() => ObsStore?.store, [ObsStore?.store]);
+
+  //Editing State
+  const [editing, setEditing] = useState(false);
+  const [editedTitle, setEditedTitle] = useState<string>();
+  const [editedProj, setEditedProj] = useState<number>();
+  const [possibleProjs, setPossibleProjs] = useState<Array<number>>();
+  const [editedDate, setEditedDate] = useState<Date>();
+  const [editedStartTime, setEditedStartTime] = useState<SimpleTime>();
+  const [editedEndTime, setEditedEndTime] = useState<SimpleTime>();
+  const [editedBanked, setEditedBanked] = useState<boolean>();
+
+  const projRef = useRef<HTMLInputElement>(null);
+
+  if (!ObsStore) return <div>Problem with internals: ObsStore missing</div>;
+  if (!store) return <div>Problem with internals: store missing</div>;
+
+  function onProjUpdate(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!store) return;
+    const query = e.target.value;
+
+    if (query === "") {
+      setPossibleProjs(undefined);
+      setEditedProj(undefined);
+      return;
+    }
+
+    setPossibleProjs(
+      Object.values(store.projects)
+        .map((value, i) =>
+          value.includes(query)
+            ? parseInt(Object.keys(store.projects)[i])
+            : null
+        )
+        .filter((v) => v !== null)
+    );
+  }
+
+  function deleteProject(id: number) {
+    if (!store || !ObsStore) return;
+    if (store.projects[id] === undefined) return;
+    if (
+      Object.values(store.tasks).find((el) => el.project === id) !== undefined
+    )
+      return;
+
+    delete store.projects[id];
+    ObsStore.save({ ...store, projects: { ...store.projects } });
+  }
+
+  function update() {
+    if (!store || !ObsStore) return;
+
+    let newProj = editedProj;
+
+    let createNewProject = false;
+    let createNewProjectString: string | undefined = undefined;
+
+    if (
+      projRef.current &&
+      projRef.current.value !== "" &&
+      projRef.current.value !== store.projects[task.project]
+    ) {
+      const match = Object.keys(store.projects).find((key) => {
+        const proj = store.projects[parseInt(key)];
+
+        return proj === projRef.current?.value;
+      });
+
+      if (match) {
+        newProj = parseInt(match);
+      } else {
+        newProj = getNewId(store.projects);
+        createNewProject = true;
+        createNewProjectString = projRef.current.value;
+      }
+    }
+
+    const newTask: Task = {
+      id: task.id,
+      title: editedTitle ?? task.title,
+      project: newProj ?? task.project,
+      date: editedDate ?? task.date,
+      startTime: editedStartTime ?? task.startTime,
+      endTime: editedEndTime ?? task.endTime,
+      banked: editedBanked ?? task.banked,
+    };
+
+    ObsStore.update(
+      store,
+      { [task.id]: newTask },
+      createNewProject && newProj !== undefined && createNewProjectString
+        ? {
+            [newProj]: createNewProjectString,
+          }
+        : {}
+    );
+
+    setEditing(false);
+    setEditedTitle(undefined);
+    setEditedProj(undefined);
+    setEditedDate(undefined);
+    setEditedStartTime(undefined);
+    setEditedEndTime(undefined);
+    setEditedBanked(undefined);
+  }
+
+  return !editing ? (
+    <TableRow>
+      <TableCell>{task.title}</TableCell>
+      <TableCell>{store.projects[task.project]}</TableCell>
+      <TableCell>{task.date.toLocaleDateString()}</TableCell>
+      <TableCell>{ObjTimeToStr(task.startTime)}</TableCell>
+      <TableCell>{task.endTime && ObjTimeToStr(task.endTime)}</TableCell>
+      <TableCell>
+        {task.endTime && calcDuration(task.startTime, task.endTime)}
+      </TableCell>
+      <TableCell className="!text-center !align-middle">
+        <input type="checkbox" checked={task.banked} readOnly />
+      </TableCell>
+      <TableCell>
+        <div className="flex gap-4">
+          <Button variant="outline" onClick={() => setEditing(true)}>
+            <Edit />
+          </Button>
+          <Button variant="outline" onClick={() => deleteTask(task.id)}>
+            <Trash2 />
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  ) : (
+    <TableRow>
+      <TableCell>
+        <Input
+          type="text"
+          defaultValue={task.title}
+          onChange={(e) => setEditedTitle(e.target.value)}
+        />
+      </TableCell>
+      <TableCell>
+        <Popover
+          open={possibleProjs && possibleProjs.length !== 0}
+          modal={false}
+        >
+          <PopoverTrigger asChild>
+            <div>
+              <Input
+                ref={projRef}
+                onChange={onProjUpdate}
+                defaultValue={store.projects[task.project]}
+              />
+            </div>
+          </PopoverTrigger>
+          {possibleProjs && (
+            <PopoverContent onOpenAutoFocus={(e) => e.preventDefault()}>
+              <div className="bg-white border max-w-full shadow rounded-md  flex gap-4 mt-2">
+                {possibleProjs.map((p, i) => {
+                  return (
+                    i <= 2 && (
+                      <div
+                        key={p}
+                        className="hover:bg-gray-100  p-2 select-none cursor-pointer flex gap-2 items-center"
+                      >
+                        <span
+                          onClick={() => {
+                            setEditedProj(p);
+                            setPossibleProjs(undefined);
+
+                            if (projRef.current) {
+                              projRef.current.value = store.projects[p];
+                            }
+                          }}
+                        >
+                          {store.projects[p]}
+                        </span>
+                        <X
+                          className="hover:bg-red-400"
+                          onClick={() => deleteProject(p)}
+                          size={15}
+                        />
+                      </div>
+                    )
+                  );
+                })}
+              </div>
+            </PopoverContent>
+          )}
+        </Popover>
+      </TableCell>
+      <TableCell>
+        <DatePicker
+          onDateChange={(e) => setEditedDate(e)}
+          defaultValue={task.date}
+        />
+      </TableCell>
+      <TableCell>
+        <TimePicker
+          onTimeChange={(e) => setEditedStartTime(e)}
+          defaultValue={task.startTime}
+        />
+      </TableCell>
+      <TableCell>
+        <TimePicker
+          onTimeChange={(e) => setEditedEndTime(e)}
+          defaultValue={task.endTime}
+        />
+      </TableCell>
+      <TableCell>
+        {editedEndTime
+          ? calcDuration(editedStartTime ?? task.startTime, editedEndTime)
+          : task.endTime &&
+            calcDuration(editedStartTime ?? task.startTime, task.endTime)}
+      </TableCell>
+      <TableCell className="!text-center !align-middle">
+        <input
+          type="checkbox"
+          defaultChecked={task.banked}
+          onChange={(e) => setEditedBanked(e.target.checked)}
+        />
+      </TableCell>
+      <TableCell>
+        <div className="flex gap-4">
+          <Button variant="outline" onClick={update}>
+            <Check />
+          </Button>
+          <Button variant="outline" onClick={() => deleteTask(task.id)}>
+            <Trash2 />
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
   );
 }
