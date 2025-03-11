@@ -1,8 +1,10 @@
 import { calcDuration, ObjTimeToStr } from "@/lib/datetime";
 import {
+  // FileManager,
   MarkdownPostProcessorContext,
   Notice,
   App as obisidianApp,
+  TFile,
 } from "obsidian";
 
 export type Projects = { [index: number]: string };
@@ -116,7 +118,7 @@ export class ObsidianStore {
     if (!hourFile) throw "File no longer exists";
     if (hoursBasePath === undefined) throw "No Path found";
 
-    // const files = [];
+    const files: TFile[] = [];
 
     await Promise.all(
       Object.keys(this.store.projects).map(async (key) => {
@@ -173,9 +175,9 @@ export class ObsidianStore {
                 if (file === null)
                   await this.app.vault.create(monthFilePath, fileContent);
 
-                // const finalfile = this.app.vault.getFileByPath(monthFilePath);
+                const finalfile = this.app.vault.getFileByPath(monthFilePath);
 
-                // if (finalfile) files.push([project, year, finalfile]);
+                if (finalfile) files.push(finalfile);
               })
             );
           })
@@ -183,9 +185,29 @@ export class ObsidianStore {
       })
     );
 
-    // await this.app.vault.append(hourFile, "\ntest\n");
+    const sectionInfo = this.ctx.getSectionInfo(this.block);
 
-    new Notice("Timesheets successfully created!");
+    if (!sectionInfo) return;
+
+    await this.app.vault.process(hourFile, (data) => {
+      const lines = data.split("\n");
+
+      lines.length = sectionInfo.lineEnd + 1;
+
+      return [
+        ...lines,
+        ...files.map((file) =>
+          this.app.fileManager.generateMarkdownLink(
+            file,
+            this.ctx.sourcePath,
+            undefined,
+            `${file.parent?.parent?.name}: ${file.basename}`
+          )
+        ),
+      ].join("\n");
+    });
+
+    new Notice(`${files.length} Timesheets successfully created!`);
   }
 }
 
