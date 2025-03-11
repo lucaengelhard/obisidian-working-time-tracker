@@ -18,10 +18,16 @@ import { ObjTimeToStr } from "@/lib/datetime";
 
 export function DatePicker({
   onDateChange,
+  defaultValue,
 }: {
   onDateChange: (date?: Date) => void;
+  defaultValue?: Date;
 }) {
   const [date, setDate] = React.useState<Date>();
+  const selected = React.useMemo(
+    () => date ?? defaultValue,
+    [date, defaultValue]
+  );
 
   return (
     <Popover>
@@ -30,16 +36,20 @@ export function DatePicker({
           variant={"outline"}
           className={cn(
             "justify-start text-left font-normal",
-            !date && "text-muted-foreground"
+            !selected && "text-muted-foreground"
           )}
         >
-          {date ? format(date, "PPP") : <CalendarIcon className="h-4 w-4" />}
+          {selected ? (
+            format(selected, "PPP")
+          ) : (
+            <CalendarIcon className="h-4 w-4" />
+          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0">
         <Calendar
           mode="single"
-          selected={date}
+          selected={selected}
           onSelect={(e) => {
             setDate(e);
             onDateChange(e);
@@ -53,11 +63,17 @@ export function DatePicker({
 
 export function TimePicker({
   onTimeChange,
+  defaultValue,
 }: {
   onTimeChange: (time?: SimpleTime) => void;
+  defaultValue?: SimpleTime;
 }) {
-  const [hour, setHour] = React.useState<number>();
-  const [minute, setMinute] = React.useState<number>();
+  const [hour, setHour] = React.useState<number | undefined>(
+    defaultValue?.hours
+  );
+  const [minute, setMinute] = React.useState<number | undefined>(
+    defaultValue?.minutes
+  );
 
   const hours = Array.from({ length: 24 }, (_, i) => i);
   const minutes = Array.from({ length: 13 }, (_, i) => i * 5);
