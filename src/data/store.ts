@@ -1,9 +1,9 @@
 import { calcDuration, ObjTimeToStr } from "@/lib/datetime";
 import {
+  App as obisidianApp,
   // FileManager,
   MarkdownPostProcessorContext,
   Notice,
-  App as obisidianApp,
   TFile,
 } from "obsidian";
 
@@ -59,7 +59,7 @@ export async function writeObsidianStore(
   input: Store,
   app: obisidianApp,
   ctx: MarkdownPostProcessorContext,
-  block: HTMLElement
+  block: HTMLElement,
 ) {
   const sectionInfo = ctx.getSectionInfo(block);
 
@@ -72,8 +72,9 @@ export async function writeObsidianStore(
   const linestart = sectionInfo.lineStart;
   const lineend = sectionInfo.lineEnd;
 
-  await app.vault.process(file, (data) =>
-    replaceTimekeepCodeblock(input, data, linestart, lineend)
+  await app.vault.process(
+    file,
+    (data) => replaceTimekeepCodeblock(input, data, linestart, lineend),
   );
 }
 
@@ -86,7 +87,7 @@ export class ObsidianStore {
     app: obisidianApp,
     ctx: MarkdownPostProcessorContext,
     block: HTMLElement,
-    store: Store
+    store: Store,
   ) {
     this.app = app;
     this.ctx = ctx;
@@ -107,7 +108,7 @@ export class ObsidianStore {
       },
       this.app,
       this.ctx,
-      this.block
+      this.block,
     );
   }
 
@@ -125,7 +126,7 @@ export class ObsidianStore {
         const project = this.store.projects[parseInt(key)];
 
         const tasks = Object.values(this.store.tasks).filter(
-          (task) => task.project === parseInt(key)
+          (task) => task.project === parseInt(key),
         );
 
         const years: { [index: number]: { [index: number]: Task[] } } = {};
@@ -152,13 +153,16 @@ export class ObsidianStore {
 
             let yearFolder = this.app.vault.getFolderByPath(yearFolderPath);
 
-            if (yearFolder === null)
+            if (yearFolder === null) {
               yearFolder = await this.app.vault.createFolder(yearFolderPath);
+            }
 
             await Promise.all(
               Object.keys(years[year]).map(async (monthStr) => {
                 const month = parseInt(monthStr) as monthNr;
-                const monthFilePath = `${yearFolderPath}/${month}-${monthMap[month]}.md`;
+                const monthFilePath = `${yearFolderPath}/${month}-${
+                  monthMap[month]
+                }.md`;
 
                 const file = this.app.vault.getFileByPath(monthFilePath);
 
@@ -166,23 +170,25 @@ export class ObsidianStore {
                   year,
                   month,
                   project,
-                  years[year][month]
+                  years[year][month],
                 );
 
-                if (overwrite && file)
+                if (overwrite && file) {
                   await this.app.vault.modify(file, fileContent);
+                }
 
-                if (file === null)
+                if (file === null) {
                   await this.app.vault.create(monthFilePath, fileContent);
+                }
 
                 const finalfile = this.app.vault.getFileByPath(monthFilePath);
 
                 if (finalfile) files.push(finalfile);
-              })
+              }),
             );
-          })
+          }),
         );
-      })
+      }),
     );
 
     const sectionInfo = this.ctx.getSectionInfo(this.block);
@@ -201,7 +207,7 @@ export class ObsidianStore {
             file,
             this.ctx.sourcePath,
             undefined,
-            `${file.parent?.parent?.name}: ${file.basename}`
+            `${file.parent?.parent?.name}: ${file.basename}`,
           )
         ),
       ].join("\n");
@@ -215,10 +221,8 @@ function createTimesheetMD(
   year: number,
   month: monthNr,
   project: string,
-  tasks: Task[]
+  tasks: Task[],
 ) {
-  // TODO: Settings (Name, ...)
-
   const heading = `# Ben Engelhard - ${monthMap[month]} ${year}`;
   const subheading = `## ${project}`;
   const tablehead = "| Datum | Start | Ende | Dauer |";
@@ -226,27 +230,33 @@ function createTimesheetMD(
   const tablecontent = tasks
     .map((task) =>
       task.endTime
-        ? `| ${task.date.toLocaleDateString()} | ${ObjTimeToStr(
-            task.startTime
-          )} | ${ObjTimeToStr(task.endTime)} | ${calcDuration(
+        ? `| ${task.date.toLocaleDateString()} | ${
+          ObjTimeToStr(
             task.startTime,
-            task.endTime
-          )} | \n`
+          )
+        } | ${ObjTimeToStr(task.endTime)} | ${
+          calcDuration(
+            task.startTime,
+            task.endTime,
+          )
+        } | \n`
         : ""
     )
     .join("");
 
-  const total = `Insgesamt: ${tasks.reduce(
-    (prev, curr) =>
-      prev +
-      (curr.endTime
-        ? parseFloat(calcDuration(curr.startTime, curr.endTime))
-        : 0),
-    0
-  )}`;
+  const total = `Insgesamt: ${
+    tasks.reduce(
+      (prev, curr) =>
+        prev +
+        (curr.endTime
+          ? parseFloat(calcDuration(curr.startTime, curr.endTime))
+          : 0),
+      0,
+    )
+  }`;
 
   return [heading, subheading, tablehead, tablesep, tablecontent, total].join(
-    "\n"
+    "\n",
   );
 }
 
@@ -254,7 +264,7 @@ export function replaceTimekeepCodeblock(
   input: Store,
   content: string,
   lineStart: number,
-  lineEnd: number
+  lineEnd: number,
 ) {
   const inputStr = JSON.stringify(input);
 
@@ -269,14 +279,14 @@ export function replaceTimekeepCodeblock(
   if (!lines[lineStart].startsWith("```")) {
     throw new Error(
       "Content workinghours out of sync, line number for codeblock start doesn't match: " +
-        content[lineStart]
+        content[lineStart],
     );
   }
 
   if (!lines[lineEnd].startsWith("```")) {
     throw new Error(
       "Content workinghours out of sync, line number for codeblock end doesn't match" +
-        content[lineEnd]
+        content[lineEnd],
     );
   }
 

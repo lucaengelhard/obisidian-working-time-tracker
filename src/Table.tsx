@@ -121,8 +121,6 @@ export default function TaskTable() {
     delete store.tasks[id];
 
     ObsStore.save({ ...store, tasks: { ...store.tasks } });
-
-    //TODO Clean Delete
   }
 
   function deleteProject(id: number) {
