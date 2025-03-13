@@ -6,6 +6,7 @@ import {
   MarkdownPostProcessorContext,
   Notice,
   TFile,
+  TFolder,
 } from "obsidian";
 
 export type Projects = { [index: number]: string };
@@ -219,8 +220,35 @@ export class ObsidianStore {
       ].join("\n");
     });
 
+    await this.updateProjects();
+
     new Notice(`${files.length} Timesheets successfully created!`);
   }
+
+  async updateProjects() {
+    const hourFile = this.app.vault.getFileByPath(this.ctx.sourcePath);
+
+    if (!hourFile) return;
+
+    const newProjects = hourFile.parent?.children.filter((child) =>
+      this.app.vault.getAbstractFileByPath(child.path) instanceof TFolder
+    ).map((child) => child.name).filter((proj) =>
+      !Object.values(this.store.projects).includes(proj)
+    );
+
+    if (!newProjects) return;
+
+    await Promise.all(
+      newProjects.map(async (proj) =>
+        this.update(this.store, this.store.tasks, {
+          ...this.store.projects,
+          [getNewId(this.store.projects)]: proj,
+        })
+      ),
+    );
+  }
+
+  //TODO: Cleanup Unused projects
 }
 
 function createTimesheetMD(
