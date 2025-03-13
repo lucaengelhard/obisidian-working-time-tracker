@@ -1,7 +1,4 @@
-// import { useState } from "react";
-// import TaskTable from "./Table";
-import { MarkdownPostProcessorContext, App as obsidianApp } from "obsidian";
-import { ObsidianStore, Store } from "./data/store";
+import { ObsidianStore } from "./data/store";
 
 import { createContext } from "react";
 import TaskTable from "./Table";
@@ -12,21 +9,9 @@ export const ObsStoreContext = createContext<ObsidianStore | undefined>(
   undefined
 );
 
-function App({
-  store,
-  app,
-  block,
-  ctx,
-}: {
-  store: Store;
-  app: obsidianApp;
-  ctx: MarkdownPostProcessorContext;
-  block: HTMLElement;
-}) {
-  const ObsStore = new ObsidianStore(app, ctx, block, store);
-
+function App({ store }: { store: ObsidianStore }) {
   return (
-    <ObsStoreContext.Provider value={ObsStore}>
+    <ObsStoreContext.Provider value={store}>
       <TaskTable />
       <Timesheet />
     </ObsStoreContext.Provider>

@@ -3,21 +3,23 @@ import "./index.css";
 import { createRoot } from "react-dom/client";
 import { StrictMode } from "react";
 import App from "./App";
-import { readStore } from "./data/store";
+import { ObsidianStore, readStore } from "./data/store";
 
 export default class WorkingHoursPlugin extends Plugin {
   async onload() {
     this.registerMarkdownCodeBlockProcessor(
       "workinghours",
       (source, block, ctx) => {
+        const ObsStore = new ObsidianStore(
+          this.app,
+          ctx,
+          block,
+          readStore(source)
+        );
+
         createRoot(block).render(
           <StrictMode>
-            <App
-              store={readStore(source)}
-              app={this.app}
-              block={block}
-              ctx={ctx}
-            />
+            <App store={ObsStore} />
           </StrictMode>
         );
       }
@@ -34,9 +36,6 @@ export default class WorkingHoursPlugin extends Plugin {
       },
     });
   }
-
-  //TODO: Export PDF (Command / Button?)
-  //TODO: EDIT functions
 
   async onunload() {}
 }

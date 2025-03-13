@@ -75,31 +75,25 @@ export default function TaskTable() {
     if (
       newTitle === undefined ||
       newDate === undefined ||
-      newStartTime === undefined
+      newStartTime === undefined ||
+      projRef.current === null
     )
       return;
     let proj = newProject;
-    let projName = "";
+    const projName = projRef.current.value;
     let newProjFlag = false;
 
-    // TODO: BUGGY
-    if (proj === undefined && projRef.current) {
+    const match = Object.keys(store.projects).find(
+      (key) => store.projects[parseInt(key)] === projName
+    );
+
+    if (match) proj = parseInt(match);
+
+    if (proj === undefined || projName !== store.projects[proj]) {
       newProjFlag = true;
-      projName = projRef.current.value;
+      if (projName.length === 0) return;
       proj = getNewId(store.projects);
     }
-
-    if (
-      proj !== undefined &&
-      projRef.current &&
-      store.projects[proj] !== projRef.current.value
-    ) {
-      newProjFlag = true;
-      projName = projRef.current.value;
-      proj = getNewId(store.projects);
-    }
-
-    if (proj === undefined) return;
 
     const newTask: Task = {
       id: getNewId(store.tasks),
