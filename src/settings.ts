@@ -4,11 +4,13 @@ import WorkingHoursPlugin from "./main";
 export interface Settings {
     name: string;
     folder: string;
+    tableRoots: Map<string, string[]>;
 }
 
 export const DEFAULT_SETTINGS: Partial<Settings> = {
     folder: "hours",
     name: "Max Mustermensch",
+    tableRoots: new Map(),
 };
 
 export class WorkingTimeSettingTab extends PluginSettingTab {

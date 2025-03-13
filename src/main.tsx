@@ -1,4 +1,4 @@
-import { Plugin } from "obsidian";
+import { Plugin, TFile } from "obsidian";
 import "./index.css";
 import { createRoot } from "react-dom/client";
 import { StrictMode } from "react";
@@ -42,6 +42,48 @@ export default class WorkingHoursPlugin extends Plugin {
     });
 
     this.addSettingTab(new WorkingTimeSettingTab(this.app, this));
+
+    this.registerEvent(
+      this.app.vault.on("create", async (e) => {
+        if (!(e instanceof TFile)) return;
+        const contents = await this.app.vault.read(e);
+
+        if (!contents.includes("```workinghours")) return;
+
+        if (!e.parent) return;
+
+        this.settings.tableRoots.set(
+          e.parent?.path,
+          e.parent?.children
+            .filter(
+              (child) => this.app.vault.getFolderByPath(child.path) !== null
+            )
+            .map((child) => child.name)
+        );
+      })
+    );
+
+    this.registerEvent(
+      this.app.vault.on("modify", async (e) => {
+        if (!(e instanceof TFile)) return;
+        const contents = await this.app.vault.read(e);
+
+        if (!contents.includes("```workinghours")) return;
+
+        if (!e.parent) return;
+
+        this.settings.tableRoots.set(
+          e.parent?.path,
+          e.parent?.children
+            .filter(
+              (child) => this.app.vault.getFolderByPath(child.path) !== null
+            )
+            .map((child) => child.name)
+        );
+      })
+    );
+
+    // this.registerEvent(this.app.vault.on("delete"))
   }
 
   async loadSettings() {
