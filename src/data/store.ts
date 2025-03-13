@@ -213,7 +213,7 @@ export class ObsidianStore {
             file,
             this.ctx.sourcePath,
             undefined,
-            `${file.parent?.parent?.name}: ${file.basename}`,
+            `${file.parent?.parent?.parent?.name}: ${file.basename}`,
           )
         ),
       ].join("\n");
