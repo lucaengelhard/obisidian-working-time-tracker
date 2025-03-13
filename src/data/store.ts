@@ -1,4 +1,5 @@
 import { calcDuration, ObjTimeToStr } from "@/lib/datetime";
+import WorkingHoursPlugin from "@/main";
 import {
   App as obisidianApp,
   // FileManager,
@@ -83,16 +84,19 @@ export class ObsidianStore {
   ctx: MarkdownPostProcessorContext;
   block: HTMLElement;
   store: Store;
+  plugin: WorkingHoursPlugin;
   constructor(
     app: obisidianApp,
     ctx: MarkdownPostProcessorContext,
     block: HTMLElement,
     store: Store,
+    plugin: WorkingHoursPlugin,
   ) {
     this.app = app;
     this.ctx = ctx;
     this.block = block;
     this.store = store;
+    this.plugin = plugin;
   }
 
   async save(input: Store) {
@@ -149,7 +153,8 @@ export class ObsidianStore {
         await Promise.all(
           Object.keys(years).map(async (yearStr) => {
             const year = parseInt(yearStr);
-            const yearFolderPath = `${hoursBasePath}/hours/${project}/${year}`;
+            const yearFolderPath =
+              `${hoursBasePath}/${project}/${this.plugin.settings.folder}/${year}`;
 
             let yearFolder = this.app.vault.getFolderByPath(yearFolderPath);
 
@@ -171,6 +176,7 @@ export class ObsidianStore {
                   month,
                   project,
                   years[year][month],
+                  this.plugin,
                 );
 
                 if (overwrite && file) {
@@ -222,8 +228,9 @@ function createTimesheetMD(
   month: monthNr,
   project: string,
   tasks: Task[],
+  plugin: WorkingHoursPlugin,
 ) {
-  const heading = `# Ben Engelhard - ${monthMap[month]} ${year}`;
+  const heading = `# ${plugin.settings.name} - ${monthMap[month]} ${year}`;
   const subheading = `## ${project}`;
   const tablehead = "| Datum | Start | Ende | Dauer |";
   const tablesep = "| ----- | ----- | ---- | ----- |";

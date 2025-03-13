@@ -4,9 +4,13 @@ import { createRoot } from "react-dom/client";
 import { StrictMode } from "react";
 import App from "./App";
 import { ObsidianStore, readStore } from "./data/store";
+import { DEFAULT_SETTINGS, Settings, WorkingTimeSettingTab } from "./settings";
 
 export default class WorkingHoursPlugin extends Plugin {
+  settings!: Settings;
+
   async onload() {
+    await this.loadSettings();
     this.registerMarkdownCodeBlockProcessor(
       "workinghours",
       (source, block, ctx) => {
@@ -14,7 +18,8 @@ export default class WorkingHoursPlugin extends Plugin {
           this.app,
           ctx,
           block,
-          readStore(source)
+          readStore(source),
+          this
         );
 
         createRoot(block).render(
@@ -35,6 +40,16 @@ export default class WorkingHoursPlugin extends Plugin {
         );
       },
     });
+
+    this.addSettingTab(new WorkingTimeSettingTab(this.app, this));
+  }
+
+  async loadSettings() {
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+  }
+
+  async saveSettings() {
+    await this.saveData(this.settings);
   }
 
   async onunload() {}
